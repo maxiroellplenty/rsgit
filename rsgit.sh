@@ -7,6 +7,7 @@ repositories=(
 )
 base_path="/mnt/d/workspace"
 script_name="rsgit.sh"
+config="config.cfg"
 version=3
 
 # Colors
@@ -31,13 +32,16 @@ declare alias_path=""
 declare install_path=""
 
 install() {
-    if [ ! -f $script_name ]; then
-        echo "Install has to be run from install directory";
-        exit;
-    fi
-    install_path="$(pwd)/$script_name"
     echo "${bold}Installing rsgit v${version}${normal}"
-    echo -e "Install path: ${GREEN}${install_path}${SET}"
+
+    if [ -f $config ]; then
+        echo "Reading config";
+        install_path=$(head -n 1 $config);
+    else
+        install_path="$(pwd)/$script_name";
+    fi
+
+    echo -e "Install path: ${GREEN}${install_path}${SET}";
 
     if [ -n "$($SHELL -c 'echo $ZSH_VERSION')" ]; then
         alias_path=~/.zshrc
@@ -49,12 +53,30 @@ install() {
         echo "${RED}No bash or zsh shell detected to create write alias file${SET}"
     fi
     echo -e "Writing alias to ${GREEN}${alias_path}${SET}"
-    grep -q -F "$install_path" $alias_path || echo alias rsgit="$script_path" >>$alias_path
+    grep -q -F "$install_path" $alias_path || echo alias rsgit="$install_path" >>$alias_path
+    echo "Saving config"
+    if [ -f $config ]; then
+        echo $install_path > $config
+        echo $alias_path >> $config
+    else
+        touch $config
+        echo $install_path >config.cfg
+        echo $alias_path >>config.cfg
+    fi
     echo -e "Done... Start new session and type ${bold}rsgit${normal}"
 }
 
 uninstall() {
-    echo "${bold}Uninstall rsgit v${version}${normal}"
+    install_path=$(head -n 1 $config);
+    alias_path=$(cat $config | head -2 | tail -1);
+    dir=$(dirname $install_path);
+    echo "Removing $dir"
+    rm -rf $dir;
+    echo "Removing alias from $alias_path"
+    line=$(grep -n "$install_path" $alias_path)
+    line_to_remove=$(echo "$line" | grep -Eo '[0-9]{1,4}');
+    sed $(echo "${line_to_remove}d") $alias_path;
+    echo "Done";
 }
 
 menu() {
@@ -172,6 +194,17 @@ check_bash_alias_files() {
     fi
 }
 
+areYouSure()
+{
+    echo -e "${YELLOW} Are you sure you want to uninstall enter: [y,n] ${SET}";
+    local choice
+    read choice
+    case $choice in
+         "y"|"Y"|"YES"|"yes"|"Yes") $1;;
+        *) exit;
+    esac 
+}
+
 _help() {
     cat <<"EOF"
 options:
@@ -183,7 +216,7 @@ EOF
 if [ -n "$1" ]; then
     case $1 in
     "--install") install ;;
-    "--uninstall") uninstall ;;
+    "--uninstall")areYouSure uninstall ;;
     "--help") _help ;;
     *) _help ;;
     esac
