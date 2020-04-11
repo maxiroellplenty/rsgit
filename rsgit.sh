@@ -26,35 +26,35 @@ SET='\033[0m'
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+# Install vars
+declare alias_path=""
+declare install_path=""
+
 install() {
-    script_path="$(pwd)/$script_name"
+    if [ ! -f $script_name ]; then
+        echo "Install has to be run from install directory";
+        exit;
+    fi
+    install_path="$(pwd)/$script_name"
     echo "${bold}Installing rsgit v${version}${normal}"
-    echo -e "Install path: ${GREEN}${script_path}${SET}"
-    local alias_path
-    local install_path
+    echo -e "Install path: ${GREEN}${install_path}${SET}"
+
     if [ -n "$($SHELL -c 'echo $ZSH_VERSION')" ]; then
         alias_path=~/.zshrc
         echo "ZSH shell detected"
     elif [ -n "$($SHELL -c 'echo $BASH_VERSION')" ]; then
-        alias_path="$(checkBashDirs)"
         echo "BASH shell detected"
+        check_bash_alias_files
     else
-        echo "${LIGHTRED}No bash or zsh shell detected to create write alias file${SET}"
-    fi
-    script_path="$(pwd)/$script_name"
-    echo -e "Checking permissions to execute ${script_name}"
-    if [[ ! -x "$script_path" ]]; then
-        echo -e "Setting +x (execute permission) for ${GREEN}${script_path}${SET}"
-        chmod +x $script_name
+        echo "${RED}No bash or zsh shell detected to create write alias file${SET}"
     fi
     echo -e "Writing alias to ${GREEN}${alias_path}${SET}"
-    echo -e "Require administrator permission to write to ${GREEN}${alias_path}${SET}"
-    sudo grep -q -F "$script_path" $alias_path || echo alias rsgit="$script_path" >>$alias_path
+    grep -q -F "$install_path" $alias_path || echo alias rsgit="$script_path" >>$alias_path
     echo -e "Done... Start new session and type ${bold}rsgit${normal}"
 }
 
 uninstall() {
-    echo -e "${RED} install ${SET}"
+    echo "${bold}Uninstall rsgit v${version}${normal}"
 }
 
 menu() {
@@ -158,16 +158,17 @@ getCurrentBranch() {
     echo $(git branch | grep \* | cut -d ' ' -f2)
 }
 
-checkBashDirs() {
+check_bash_alias_files() {
     bash=~/.bashrc
     bash_profile=~/.bashrc_profile
     if [ -f $bash ]; then
-        return $bash
+        alias_path=$bash
     elif [ -f $bash_profile ]; then
-        return $bash_profile
+        alias_path=$bash_profile
     else
-        touch $bash
-        return $bash
+        echo -e "${RED}Missing file ${bash} or ${bash_profile} cant write alias file${SET}"
+        echo "Exiting install script..."
+        exit
     fi
 }
 
