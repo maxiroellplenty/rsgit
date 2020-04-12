@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Config
+
 repositories=(
     "roellsh=master"
     "web-template=master"
