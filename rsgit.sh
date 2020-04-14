@@ -6,7 +6,7 @@ repositories=(
     "roellsh=master"
     "web-template=master"
 )
-base_path="/mnt/d/workspace"
+base_path="/workspace"
 script_name="rsgit.sh"
 config="config.cfg"
 version=3
