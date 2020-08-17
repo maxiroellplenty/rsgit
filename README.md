@@ -14,7 +14,7 @@ chmod +x rsgit
 ```
 
 ```
-./rsgit.sh --install
+./rsgit --install
 ```
 
 ## Config
