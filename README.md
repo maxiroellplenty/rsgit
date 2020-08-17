@@ -1,5 +1,7 @@
 # rsgit v3
 
+tested with macOS, adjust install path for other OS types 
+
 ## Install
 ```
 git clone https://github.com/maxiroellplenty/rsgit.git
@@ -8,7 +10,7 @@ git clone https://github.com/maxiroellplenty/rsgit.git
 cd rsgit
 ```
 ```
-chmod +x rsgit.sh
+chmod +x rsgit
 ```
 
 ```
@@ -17,7 +19,7 @@ chmod +x rsgit.sh
 
 ## Config
 
-* Open the `rsgit.sh` file
+* Open the `/usr/local/bin/rsgit` file
 * Add you repositories to the array in line 5
     * repositoryPath=branchName
     * repositoryPath is the path for the repo
