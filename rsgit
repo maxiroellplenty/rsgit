@@ -8,7 +8,6 @@ repositories=(
 )
 base_path="/workspace"
 script_name="rsgit"
-
 version=3
 
 # Colors
@@ -56,7 +55,8 @@ menu() {
 [1]  Pull repositories
 [2]  List repositories
 [3]  Reset repositories to base branch
-[4]  Help
+[4]  Git Housekeeping
+[5]  Help
 [99] Exit
 EOF
     printf "%0.s-" {1..47}
@@ -67,7 +67,8 @@ EOF
     "1") pull_repos ;;
     "2") list_repos ;;
     "3") reset_repos_to_base ;;
-    "4") _help ;;
+    "4") git_house_keeping;;
+    "5") _help ;;
     "99") exit 0 ;;
     *) menu ;;
     esac
@@ -76,11 +77,8 @@ EOF
 
 pull_repos() {
     for repo in "${repositories[@]}"; do
-        if [[ $repo == *"="* ]]; then
-            repo_path="$(cut -d '=' -f1 <<<$repo)"
-        else
-            repo_path=$repo
-        fi
+        declare repo_path
+        repo_path=$(getRepoBranch $repo);
         dir="$base_path/$repo_path"
         cd $dir
         echo -e "Pulling: ${BLUE}$(basename $(pwd))${SET} | ${PURPLE}$(getCurrentBranch)${SET}"
@@ -91,11 +89,7 @@ pull_repos() {
 list_repos() {
     for repo in "${repositories[@]}"; do
         declare repo_path
-        if [[ $repo == *"="* ]]; then
-            repo_path="$(cut -d '=' -f1 <<<$repo)"
-        else
-            repo_path=$repo
-        fi
+        repo_path=$(getRepoBranch $repo);
         dir="$base_path/$repo_path"
         cd $dir
         if [[ -z $(git status --porcelain) ]]; then
@@ -125,16 +119,48 @@ reset_repos_to_base() {
     done
     echo ""
 }
+getRepoBranch() {
+    local repo_path;
+    if [[ $1 == *"="* ]]; then
+        repo_path="$(cut -d '=' -f1 <<<$1)";
+    else
+        repo_path=$1;
+    fi
+    echo "$repo_path";
+}
+
+git_house_keeping() {
+    cat <<"EOF"
+#------------------------------------#
+#  🧹 Select repository to clear 🧹  #
+#------------------------------------#
+
+Clears all local repository branches wich have no remote branch
+
+EOF
+    declare counter=0;
+    for repo in "${repositories[@]}"; do
+        repo_path=$(getRepoBranch $repo);
+        dir="$base_path/$repo_path";
+        cd $dir;
+        echo -e "[$counter] \t $(basename $(pwd))";
+        counter=$((counter+1));
+    done
+    local choice;
+    read choice;
+    selectedRepo="${repositories[$choice]}";
+    repo_path=$(getRepoBranch $selectedRepo);
+    dir="$base_path/$repo_path";
+    cd $dir;
+    git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }' | xargs git branch -D;
+}
 
 pull() {
     if [ -n "$(git status --porcelain)" ]; then
         stash
-        git pull &>/dev/null
-        echo -e "${GREEN} ✔️ ${SET} done"
-    else
-        git pull &>/dev/null
-        echo -e "${GREEN} ✔️ ${SET} done"
     fi
+    git pull &>/dev/null;
+    echo "done";
 }
 
 stash() {
