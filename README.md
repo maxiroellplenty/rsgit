@@ -31,24 +31,6 @@ chmod +x rsgit
 
 ## How to use
 * Start new shell and type `rsgit`
-```
-   ___  ___________________
-  / _ \/ __/ ___/  _/_  __/
- / , _/\ \/ (_ // /  / /
-/_/|_/___/\___/___/ /_/  v3 by roelldev
-
-[1]  Pull repositories
-[2]  List repositories
-[3]  Reset repositories to base branch
-[4]  Help
-[99] Exit
------------------------------------------------
-Enter option:
-```
-
-* [1] Pulls all defined repositories and stashes changes.
-* [2] Lists all defined repositories.
-* [3] Resets all repositories to the defined branch.
 
 ## Options
 * --install
